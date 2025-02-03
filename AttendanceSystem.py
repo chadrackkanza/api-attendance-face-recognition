@@ -26,11 +26,21 @@ def save_file(file, id):
     
 
 def findEncodingImg(images):       
-    encodeList=[]
+    encodeList = []
+    
     for img in images:
-        img=cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-        encode=face_recognition.face_encodings(img)[0]
-        encodeList.append(encode)       
+        try:
+            img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+
+            encodings = face_recognition.face_encodings(img)
+            print(encodings)
+            if len(encodings) > 0:
+                encodeList.append(encodings[0])
+            else:
+                print("[WARNING] Aucun visage détecté dans l'image.")
+
+        except Exception as e:
+            print(f"[ERROR] Une erreur s'est produite : {e}")
 
     return encodeList
 
@@ -38,6 +48,7 @@ def findEncodingImg(images):
 
 @app.route('/employees', methods=['GET'])
 def getEmployeesdata():
+    print("ok")
     return databaseScript.getEmployees()
      
 
@@ -68,6 +79,7 @@ def check():
     
     file = request.files['photo']
 
+
     if file.filename == '':
         message = { 'message' : 'No file selected'}
         return Response(json.dumps(message), status=400, mimetype='application/json')
@@ -97,7 +109,7 @@ def check():
             if (len(faceEncodings)):
                 if(len(known_face_encodings)):
                     myEncode= faceEncodings[0]
-                    matches=face_recognition.compare_faces(known_face_encodings, myEncode, tolerance=0.5)
+                    matches=face_recognition.compare_faces(known_face_encodings, myEncode, tolerance=0.4)
                     faceDis=face_recognition.face_distance(known_face_encodings, myEncode)
                     matcheIndexes=np.argmin(faceDis)
 
@@ -109,16 +121,20 @@ def check():
 
                     print("matcheIndexes")
                     print(matcheIndexes)
+
+                    print(matches[matcheIndexes])
                     
                     if(matches[matcheIndexes]):
                         today = date.today()
                         path_image = f'{path}/{file.filename}'
                         id = ((classNames[matcheIndexes]).split('-'))[0]
-                        result = databaseScript.save_attendance(id) 
+                        result = databaseScript.get_etudiant_info(id) 
+                        print(result)
                         return result
 
+
                     else :
-                        message = {'message' : 'Aucune personne n\'a été trouvé'}
+                        message = {'message' : 'Visage inconnu'}
                         return Response(json.dumps(message), status=400, mimetype='application/json')
                 else :
                     message = {'message' : 'Aucune personne n\'a été trouvé'}
@@ -129,5 +145,5 @@ def check():
             
 if __name__ == '__main__':
     # run app in debug mode on port 5000
-    app.run(debug=True,host='192.168.1.100', port=5000)
+    app.run(debug=True,host='0.0.0.0', port=5500)
     
