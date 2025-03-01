@@ -4,26 +4,25 @@ from collections import OrderedDict
 from datetime import date, datetime
 from flask import Response
 import json
-import pymysql.cursors
+import MySQLdb
 
 # Connect to the database
-connection = pymysql.connect(host='localhost',
-                             user='root',
-                             password='08294',
-                             database='studentfacialerecognition',
-                             cursorclass=pymysql.cursors.DictCursor)
+connection = MySQLdb.connect(
+    host='localhost',
+    user='root',
+    passwd='08294',
+    db='studentfacialerecognition'
+)
 
 # Creating connection Object which will contain MySQL Server Connection
-
 print("connection")
 print(connection)
 
 cursor = connection.cursor()
 
 def getEmployees():
-    sql = "SELECT * FROM etudiants"
-    param_values = ()
-    cursor.execute(sql, param_values)
+    sql = "SELECT * FROM etudiants ORDER BY id DESC"
+    cursor.execute(sql)
     results = cursor.fetchall()
     employees = []
     content = {}
@@ -42,12 +41,12 @@ def getEmployees():
 
 def enroll_employee(etudiant_id, picture):
     date_enrolment = datetime.now()
-    sql = "INSERT INTO attendance_enrolments (etudiant_id, date_enrolment, picture) VALUES (%s, %s, %s)"
+    sql = "INSERT INTO identification (etudiant_id, date_enrolment, picture) VALUES (%s, %s, %s)"
     param_values = (etudiant_id, date_enrolment, picture)
     cursor.execute(sql, param_values)
     connection.commit()
 
-    message = {'message': 'Employee is enrolled with success'}
+    message = {'message': 'Student is enrolled with success'}
     return Response(json.dumps(message), status=200, mimetype='application/json')
 
 def get_etudiant_info(etudiant_id):
@@ -76,10 +75,10 @@ def get_etudiant_info(etudiant_id):
 def register_student(name, sexe, adresse, promotion, annee_academique):
     print(sexe)
     sql_insert = """
-        INSERT INTO etudiants (id,name, sexe, adresse, promotion, annee_academique) 
-        VALUES (%s, %s, %s, %s, %s, %s)
+        INSERT INTO etudiants (name, sexe, adresse, promotion, annee_academique) 
+        VALUES (%s, %s, %s, %s, %s)
     """
-    param_values = (random.randint(0,100), name, sexe, adresse, promotion, annee_academique)
+    param_values = (name, sexe, adresse, promotion, annee_academique)
     cursor.execute(sql_insert, param_values)
     connection.commit()
 

@@ -75,7 +75,7 @@ def check():
     if file and allowed_file(file.filename):
         path = f'Images'
         if not os.path.exists(path):
-            message = {'message': 'Employee isn\'t enrolled'}
+            message = {'message': 'Student isn\'t enrolled'}
             return Response(json.dumps(message), status=400, mimetype='application/json')
 
         else:
@@ -92,7 +92,7 @@ def check():
 
             npImage = np.fromfile(file, np.uint8)
 
-            img = cv2.imdecode(npImage, np.COLOR_BGR2RGB)
+            img = cv2.imdecode(npImage, cv2.COLOR_BGR2RGB)
             faceEncodings = face_recognition.face_encodings(img)
             if len(faceEncodings):
                 if len(known_face_encodings):
@@ -100,17 +100,6 @@ def check():
                     matches = face_recognition.compare_faces(known_face_encodings, myEncode, tolerance=0.4)
                     faceDis = face_recognition.face_distance(known_face_encodings, myEncode)
                     matcheIndexes = np.argmin(faceDis)
-
-                    print("matches")
-                    print(matches)
-
-                    print("faceDis")
-                    print(faceDis)
-
-                    print("matcheIndexes")
-                    print(matcheIndexes)
-
-                    print(matches[matcheIndexes])
 
                     if matches[matcheIndexes]:
                         today = date.today()
@@ -123,7 +112,7 @@ def check():
                         message = {'message': 'Visage inconnu'}
                         return Response(json.dumps(message), status=400, mimetype='application/json')
                 else:
-                    message = {'message': 'Aucune personne n\'a été trouvée'}
+                    message = {'message': 'Aucun(e) Etudiant(e) n\'a été trouvée'}
                     return Response(json.dumps(message), status=400, mimetype='application/json')
             else:
                 message = {'message': 'Envoyer l\'image d\'une personne'}
